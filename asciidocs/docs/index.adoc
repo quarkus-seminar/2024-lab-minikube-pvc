@@ -435,14 +435,6 @@ image::run-quarkus-dev.png[]
 
 
 
-
-
-
-
-
-
-
-
 == Start minikube
 
 [source,shell]
@@ -505,7 +497,7 @@ minikube addons list |grep enabled
 
 == .jar File erstellen (uber-jar)
 
-.Precondition
+.Precondition in application.properties
 [source,properties]
 ----
 quarkus.package.type=uber-jar
@@ -524,7 +516,7 @@ image::runner-jar-in-target.png[]
 == Create docker Image
 
 * Therefore, we need a `Dockerfile`.
-* There are already Dockerfiles in `src/main/docker` - these are not needed and can be deleted
+* There are already Dockerfiles in `src/main/docker` - these are not needed and can be deleted (when not already done).
 
 * Create a new Dockerfile in `src/main/docker`
 
@@ -547,7 +539,7 @@ image::runner-jar-in-target.png[]
 .Dockerfile
 [source,dockerfile]
 ----
-FROM eclipse-temurin:17-jre
+FROM eclipse-temurin:21-jre
 
 RUN mkdir -p /opt/application
 COPY *-runner.jar /opt/application/backend.jar
@@ -559,7 +551,7 @@ CMD [ "java", "-jar", "backend.jar" ]
 image::docker-build-command-2.png[]
 
 
-* The following steps should be automated, but for now we do it manually:
+* The following steps could be automated, but for now we do it manually:
 
 [source,shell]
 ----
