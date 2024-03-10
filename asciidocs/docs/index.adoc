@@ -297,9 +297,140 @@ networks:
     driver: bridge
 ----
 
+=== Start Database Locally
+
+[source,shell]
+----
+./postgres-create-db.sh
+----
+
+.result
+----
+Installing postgres into ./db-postgres ...
+----
+
+[source,shell]
+----
+ ./postgres-start.sh
+----
+
+.result
+----
+[+] Running 2/2
+ ✔ Container postgres  Started
+----
+
+image::db-import-datasource.png[]
+
+image::db-config-datasource.png[]
+
+image::db-window.png[]
+
+IMPORTANT: Add Folder `db-postgres/` to `.gitignore`
 
 
+== Code Vehicle
 
+image::vehicle-source-code.png[]
+
+.entity/Vehicle.java
+[source,java]
+----
+package at.htl.minikube.entity;
+
+// imports
+
+@Entity
+public class Vehicle {
+
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    private String brand;
+    private String model;
+
+    //region constructors
+    public Vehicle() {
+    }
+
+    public Vehicle(String brand, String model) {
+        this.brand = brand;
+        this.model = model;
+    }
+    //endregion
+
+    // getter and setter
+
+
+    @Override
+    public String toString() {
+        return String.format("%d: %s %s", id, brand, model);
+    }
+}
+
+----
+
+.control/RestConfig.java
+[source,java]
+----
+package at.htl.minikube.control;
+
+import jakarta.ws.rs.ApplicationPath;
+import jakarta.ws.rs.core.Application;
+
+@ApplicationPath("api")
+public class RestConfig extends Application {
+}
+----
+
+
+.control/VehicleRepository.java
+[source,java]
+----
+package at.htl.minikube.control;
+
+// imports
+
+@ApplicationScoped
+public class VehicleRepository implements PanacheRepository<Vehicle> {
+}
+----
+
+.boundary/VehicleResource.java
+[source,java]
+----
+package at.htl.minikube.boundary;
+
+import at.htl.minikube.control.VehicleRepository;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.core.Response;
+
+@Path("vehicle")
+public class VehicleResource {
+
+    @Inject
+    VehicleRepository vehicleRepository;
+
+    @GET
+    public Response getAll() {
+        return Response.ok(
+                vehicleRepository.listAll()
+                ).build();
+    }
+}
+
+----
+
+
+== Run Quarkus with Db Access
+
+[source,shell]
+----
+./mvnw clean quarkus:dev
+----
+
+image::run-quarkus-dev.png[]
 
 
 
