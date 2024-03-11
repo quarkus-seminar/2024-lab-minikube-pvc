@@ -717,7 +717,7 @@ spec:
 ----
 kubectl create deployment appsrv --image=ghcr.io/htl-leonding/backend:latest --port=8080
 ----
-
+qcfk84
 .result
 ----
 deployment.apps/appsrv created
@@ -749,6 +749,7 @@ kubectl expose deployments/appsrv-depl --port=8080
 
 [source,shell]
 ----
+kubectl apply -f k8s/postgres.yaml
 kubectl apply -f k8s/appsrv.yaml
 ----
 
