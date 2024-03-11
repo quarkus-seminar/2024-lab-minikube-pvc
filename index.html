@@ -556,7 +556,7 @@ pre.rouge .gs {
 <div class="details">
 <span id="author" class="author">Thomas W. Stütz</span><br>
 <span id="revnumber">version 1.0.0,</span>
-<span id="revdate">2024-03-10</span>
+<span id="revdate">2024-03-11</span>
 <br><span id="revremark">build a simple rest endpoint and deploy app to minikube/cloud</span>
 </div>
 <div id="toc" class="toc2">
@@ -1479,8 +1479,11 @@ touch k8s/appsrv.yaml</pre>
 <pre class="rouge highlight"><code data-lang="shell">kubectl create deployment appsrv <span class="nt">--image</span><span class="o">=</span>ghcr.io/htl-leonding/backend:latest <span class="nt">--port</span><span class="o">=</span>8080</code></pre>
 </div>
 </div>
+<div class="paragraph">
+<p>qcfk84
+.result</p>
+</div>
 <div class="listingblock">
-<div class="title">result</div>
 <div class="content">
 <pre>deployment.apps/appsrv created</pre>
 </div>
@@ -1512,7 +1515,8 @@ touch k8s/appsrv.yaml</pre>
 <div class="sectionbody">
 <div class="listingblock">
 <div class="content">
-<pre class="rouge highlight"><code data-lang="shell">kubectl apply <span class="nt">-f</span> k8s/appsrv.yaml</code></pre>
+<pre class="rouge highlight"><code data-lang="shell">kubectl apply <span class="nt">-f</span> k8s/postgres.yaml
+kubectl apply <span class="nt">-f</span> k8s/appsrv.yaml</code></pre>
 </div>
 </div>
 <details>
@@ -1750,7 +1754,7 @@ Hello from RESTEasy Reactive%</pre>
 <div id="footer">
 <div id="footer-text">
 Version 1.0.0<br>
-Last updated 2024-03-10 17:43:39 UTC
+Last updated 2024-03-11 13:29:27 UTC
 </div>
 </div>
 </body>
