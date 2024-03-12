@@ -556,7 +556,7 @@ pre.rouge .gs {
 <div class="details">
 <span id="author" class="author">Thomas W. Stütz</span><br>
 <span id="revnumber">version 1.0.0,</span>
-<span id="revdate">2024-03-11</span>
+<span id="revdate">2024-03-12</span>
 <br><span id="revremark">build a simple rest endpoint and deploy app to minikube/cloud</span>
 </div>
 <div id="toc" class="toc2">
@@ -579,18 +579,20 @@ pre.rouge .gs {
 <li><a href="#_start_minikube">9. Start minikube</a></li>
 <li><a href="#_jar_file_erstellen_uber_jar">10. .jar File erstellen (uber-jar)</a></li>
 <li><a href="#_create_docker_image">11. Create docker Image</a></li>
-<li><a href="#_docker_image_push_to_docker_registry">12. Docker image push to Docker Registry</a></li>
-<li><a href="#_configure_kubernetes_deployment">13. Configure kubernetes Deployment</a></li>
-<li><a href="#_deploy_to_minikube_the_first_time">14. Deploy to minikube the first time</a>
+<li><a href="#_create_build_sh">12. Create build.sh</a></li>
+<li><a href="#_config_gh_actions_pipeline">13. Config gh-actions - Pipeline</a></li>
+<li><a href="#_make_the_package_public">14. Make the Package Public</a></li>
+<li><a href="#_configure_kubernetes_deployment">15. Configure kubernetes Deployment</a></li>
+<li><a href="#_deploy_to_minikube_the_first_time">16. Deploy to minikube the first time</a>
 <ul class="sectlevel2">
-<li><a href="#_check_the_success">14.1. Check the Success</a></li>
-<li><a href="#_fix_problems">14.2. Fix problems</a></li>
+<li><a href="#_check_the_success">16.1. Check the Success</a></li>
+<li><a href="#_fix_problems">16.2. Fix problems</a></li>
 </ul>
 </li>
-<li><a href="#_re_deploy_to_minikube">15. Re-Deploy to minikube</a></li>
-<li><a href="#_port_forward_from_minikube">16. Port Forward from minikube</a></li>
-<li><a href="#_access_the_app">17. Access the App</a></li>
-<li><a href="#_troubleshooting">18. Troubleshooting</a></li>
+<li><a href="#_re_deploy_to_minikube">17. Re-Deploy to minikube</a></li>
+<li><a href="#_port_forward_from_minikube">18. Port Forward from minikube</a></li>
+<li><a href="#_access_the_app">19. Access the App</a></li>
+<li><a href="#_troubleshooting">20. Troubleshooting</a></li>
 </ul>
 </div>
 </div>
@@ -1269,103 +1271,78 @@ minikube addons enable dashboard</pre>
 <img src="images/docker-build-command-2.png" alt="docker build command 2">
 </div>
 </div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_create_build_sh"><a class="anchor" href="#_create_build_sh"></a>12. Create build.sh</h2>
+<div class="sectionbody">
 <div class="ulist">
 <ul>
 <li>
-<p>The following steps could be automated, but for now we do it manually:</p>
+<p>Before we made it manually, but now we use a script in the project root.</p>
 </li>
 </ul>
 </div>
 <div class="listingblock">
+<div class="title">build.sh</div>
 <div class="content">
-<pre class="rouge highlight"><code data-lang="shell"><span class="nb">cp </span>src/main/docker/Dockerfile target
-docker build <span class="nt">--tag</span> ghcr.io/htl-leonding/backend:latest ./target</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="rouge highlight"><code data-lang="shell">docker image <span class="nb">ls</span></code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="title">result</div>
-<div class="content">
-<pre>REPOSITORY                       TAG           IMAGE ID       CREATED         SIZE
-...
-gghcr.io/htl-leonding/backend    latest        ae27690f900d   53 seconds ago   263MB
-...</pre>
+<pre class="rouge highlight"><code data-lang="shell"><span class="c">#!/usr/bin/env bash</span>
+
+mvn <span class="nt">-B</span> package
+<span class="nb">cp </span>src/main/docker/Dockerfile target/
+docker login ghcr.io <span class="nt">-u</span> <span class="nv">$GITHUB_ACTOR</span> <span class="nt">-p</span> <span class="nv">$GITHUB_TOKEN</span>
+docker build <span class="nt">--tag</span> ghcr.io/<span class="nv">$GITHUB_REPOSITORY</span>/backend:latest ./target
+docker push ghcr.io/<span class="nv">$GITHUB_REPOSITORY</span>/backend:latest</code></pre>
 </div>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_docker_image_push_to_docker_registry"><a class="anchor" href="#_docker_image_push_to_docker_registry"></a>12. Docker image push to Docker Registry</h2>
+<h2 id="_config_gh_actions_pipeline"><a class="anchor" href="#_config_gh_actions_pipeline"></a>13. Config gh-actions - Pipeline</h2>
 <div class="sectionbody">
 <div class="listingblock">
 <div class="content">
-<pre class="rouge highlight"><code data-lang="shell">docker login ghcr.io</code></pre>
-</div>
-</div>
-<details>
-<summary class="title">You need a personal token to authenticate (click for instructions)</summary>
-<div class="content">
-<div class="ulist">
-<ul>
-<li>
-<p>github - profile picture - Settings - Developer Settings - Personal access tokens - Tokens (classic)</p>
-</li>
-</ul>
-</div>
-<div class="imageblock">
-<div class="content">
-<img src="images/gh-token-1.png" alt="gh token 1">
-</div>
-</div>
-<div class="imageblock">
-<div class="content">
-<img src="images/gh-token-2.png" alt="gh token 2">
-</div>
-</div>
-<div class="paragraph">
-<p>Troubleshooting:</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>When your gh-user-name contains uppercase letters, change the name to lowercase.</p>
-</li>
-<li>
-<p>When it still, does not work, then delete <code>~/.docker/config.json</code> and try it again.</p>
-</li>
-</ul>
-</div>
-</div>
-</details>
-<div class="listingblock">
-<div class="title">Push Container to docker registry</div>
-<div class="content">
-<pre class="rouge highlight"><code data-lang="shell">docker push ghcr.io/htl-leonding/backend:latest</code></pre>
-</div>
-</div>
-<details>
-<summary class="title">result</summary>
-<div class="content">
-<div class="listingblock">
-<div class="content">
-<pre>The push refers to repository [ghcr.io/htl-leonding/backend]
-5f70bf18a086: Layer already exists
-2359f2e5d796: Pushed
-08b2bdc5762e: Layer already exists
-6e0f58883206: Layer already exists
-eed4bd617b87: Layer already exists
-65bb8dcc703b: Layer already exists
-63aa4237e067: Layer already exists
-98d1994bf6c1: Layer already exists
-latest: digest: sha256:50c58e0426ad4b4335c791d7f60efcad24cc9c5554d5e7f35f0438186af508ca size: 1992</pre>
+<pre class="rouge highlight"><code data-lang="yaml"><span class="na">name</span><span class="pi">:</span> <span class="s">Build and Deploy Dockerfiles</span>
+<span class="na">run-name</span><span class="pi">:</span> <span class="s">${{ github.actor }} is building Docker images 🚀</span>
+<span class="na">on</span><span class="pi">:</span> <span class="pi">[</span> <span class="nv">push</span> <span class="pi">]</span>
+<span class="na">jobs</span><span class="pi">:</span>
+  <span class="na">build-images</span><span class="pi">:</span>
+    <span class="na">permissions</span><span class="pi">:</span> <span class="s">write-all</span>
+    <span class="na">runs-on</span><span class="pi">:</span> <span class="s">ubuntu-22.04</span>
+    <span class="na">steps</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Check out repository code</span>
+        <span class="na">uses</span><span class="pi">:</span> <span class="s">actions/checkout@v4</span>
+
+      <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Login to GitHub Container Registry</span>
+        <span class="na">uses</span><span class="pi">:</span> <span class="s">docker/login-action@v3</span>
+        <span class="na">with</span><span class="pi">:</span>
+          <span class="na">registry</span><span class="pi">:</span> <span class="s">ghcr.io</span>
+          <span class="na">username</span><span class="pi">:</span> <span class="s">${{ github.actor }}</span>
+          <span class="na">password</span><span class="pi">:</span> <span class="s">${{ secrets.GITHUB_TOKEN }}</span>
+
+      <span class="pi">-</span> <span class="na">run</span><span class="pi">:</span> <span class="pi">|</span>
+          <span class="s">pwd</span>
+          <span class="s">ls -lah</span>
+        <span class="na">working-directory</span><span class="pi">:</span> <span class="s">./k8s</span>
+
+      <span class="pi">-</span> <span class="na">uses</span><span class="pi">:</span> <span class="s">actions/setup-java@v4</span>
+        <span class="na">with</span><span class="pi">:</span>
+          <span class="na">distribution</span><span class="pi">:</span> <span class="s1">'</span><span class="s">temurin'</span>
+          <span class="na">java-version</span><span class="pi">:</span> <span class="s1">'</span><span class="s">21'</span>
+          <span class="na">cache</span><span class="pi">:</span> <span class="s1">'</span><span class="s">maven'</span>
+
+      <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Set up Docker Buildx</span>
+        <span class="na">uses</span><span class="pi">:</span> <span class="s">docker/setup-buildx-action@v3</span>
+
+      <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Build with Maven</span>
+        <span class="na">run</span><span class="pi">:</span> <span class="s">./build.sh</span></code></pre>
 </div>
 </div>
 </div>
-</details>
+</div>
+<div class="sect1">
+<h2 id="_make_the_package_public"><a class="anchor" href="#_make_the_package_public"></a>14. Make the Package Public</h2>
+<div class="sectionbody">
 <details>
 <summary class="title">Make package public (click for instructions)</summary>
 <div class="content">
@@ -1394,7 +1371,7 @@ latest: digest: sha256:50c58e0426ad4b4335c791d7f60efcad24cc9c5554d5e7f35f0438186
 </div>
 </div>
 <div class="sect1">
-<h2 id="_configure_kubernetes_deployment"><a class="anchor" href="#_configure_kubernetes_deployment"></a>13. Configure kubernetes Deployment</h2>
+<h2 id="_configure_kubernetes_deployment"><a class="anchor" href="#_configure_kubernetes_deployment"></a>15. Configure kubernetes Deployment</h2>
 <div class="sectionbody">
 <div class="listingblock">
 <div class="title">check, if you are still in project root, then:</div>
@@ -1479,11 +1456,8 @@ touch k8s/appsrv.yaml</pre>
 <pre class="rouge highlight"><code data-lang="shell">kubectl create deployment appsrv <span class="nt">--image</span><span class="o">=</span>ghcr.io/htl-leonding/backend:latest <span class="nt">--port</span><span class="o">=</span>8080</code></pre>
 </div>
 </div>
-<div class="paragraph">
-<p>qcfk84
-.result</p>
-</div>
 <div class="listingblock">
+<div class="title">result</div>
 <div class="content">
 <pre>deployment.apps/appsrv created</pre>
 </div>
@@ -1511,7 +1485,7 @@ touch k8s/appsrv.yaml</pre>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_deploy_to_minikube_the_first_time"><a class="anchor" href="#_deploy_to_minikube_the_first_time"></a>14. Deploy to minikube the first time</h2>
+<h2 id="_deploy_to_minikube_the_first_time"><a class="anchor" href="#_deploy_to_minikube_the_first_time"></a>16. Deploy to minikube the first time</h2>
 <div class="sectionbody">
 <div class="listingblock">
 <div class="content">
@@ -1531,7 +1505,7 @@ service/appsrv created</pre>
 </div>
 </details>
 <div class="sect2">
-<h3 id="_check_the_success"><a class="anchor" href="#_check_the_success"></a>14.1. Check the Success</h3>
+<h3 id="_check_the_success"><a class="anchor" href="#_check_the_success"></a>16.1. Check the Success</h3>
 <div class="listingblock">
 <div class="content">
 <pre>minikube dashboard</pre>
@@ -1578,7 +1552,7 @@ service/appsrv created</pre>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_fix_problems"><a class="anchor" href="#_fix_problems"></a>14.2. Fix problems</h3>
+<h3 id="_fix_problems"><a class="anchor" href="#_fix_problems"></a>16.2. Fix problems</h3>
 <div class="imageblock">
 <div class="content">
 <img src="images/dashboard-02.png" alt="dashboard 02">
@@ -1628,7 +1602,7 @@ service/appsrv created</pre>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_re_deploy_to_minikube"><a class="anchor" href="#_re_deploy_to_minikube"></a>15. Re-Deploy to minikube</h2>
+<h2 id="_re_deploy_to_minikube"><a class="anchor" href="#_re_deploy_to_minikube"></a>17. Re-Deploy to minikube</h2>
 <div class="sectionbody">
 <details>
 <summary class="title">build and push the image</summary>
@@ -1676,7 +1650,7 @@ docker push ghcr.io/htl-leonding/backend:latest</pre>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_port_forward_from_minikube"><a class="anchor" href="#_port_forward_from_minikube"></a>16. Port Forward from minikube</h2>
+<h2 id="_port_forward_from_minikube"><a class="anchor" href="#_port_forward_from_minikube"></a>18. Port Forward from minikube</h2>
 <div class="sectionbody">
 <div class="listingblock">
 <div class="title">Port forwarding</div>
@@ -1711,7 +1685,7 @@ Forwarding from [::1]:8080 -&gt; 8080</pre>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_access_the_app"><a class="anchor" href="#_access_the_app"></a>17. Access the App</h2>
+<h2 id="_access_the_app"><a class="anchor" href="#_access_the_app"></a>19. Access the App</h2>
 <div class="sectionbody">
 <div class="listingblock">
 <div class="content">
@@ -1731,7 +1705,7 @@ Hello from RESTEasy Reactive%</pre>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_troubleshooting"><a class="anchor" href="#_troubleshooting"></a>18. Troubleshooting</h2>
+<h2 id="_troubleshooting"><a class="anchor" href="#_troubleshooting"></a>20. Troubleshooting</h2>
 <div class="sectionbody">
 <div class="listingblock">
 <div class="title">open an ssh-shell in minikube</div>
@@ -1754,7 +1728,7 @@ Hello from RESTEasy Reactive%</pre>
 <div id="footer">
 <div id="footer-text">
 Version 1.0.0<br>
-Last updated 2024-03-11 13:29:27 UTC
+Last updated 2024-03-12 21:54:39 UTC
 </div>
 </div>
 </body>
