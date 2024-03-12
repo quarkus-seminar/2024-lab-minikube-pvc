@@ -551,80 +551,67 @@ CMD [ "java", "-jar", "backend.jar" ]
 image::docker-build-command-2.png[]
 
 
-* The following steps could be automated, but for now we do it manually:
+== Create build.sh
 
+* Before we made it manually, but now we use a script in the project root.
+
+.build.sh
 [source,shell]
 ----
-cp src/main/docker/Dockerfile target
-docker build --tag ghcr.io/htl-leonding/backend:latest ./target
+#!/usr/bin/env bash
+
+mvn -B package
+cp src/main/docker/Dockerfile target/
+docker login ghcr.io -u $GITHUB_ACTOR -p $GITHUB_TOKEN
+docker build --tag ghcr.io/$GITHUB_REPOSITORY/backend:latest ./target
+docker push ghcr.io/$GITHUB_REPOSITORY/backend:latest
 ----
 
 
-[source,shell]
+== Config gh-actions - Pipeline
+
+[source,yaml]
 ----
-docker image ls
-----
+name: Build and Deploy Dockerfiles
+run-name: ${{ github.actor }} is building Docker images 🚀
+on: [ push ]
+jobs:
+  build-images:
+    permissions: write-all
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
 
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-.result
-----
-REPOSITORY                       TAG           IMAGE ID       CREATED         SIZE
-...
-gghcr.io/htl-leonding/backend    latest        ae27690f900d   53 seconds ago   263MB
-...
-----
+      - run: |
+          pwd
+          ls -lah
+        working-directory: ./k8s
 
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+          cache: 'maven'
 
-== Docker image push to Docker Registry
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-[source,shell]
-----
-docker login ghcr.io
-----
-
-.You need a personal token to authenticate (click for instructions)
-[%collapsible]
-====
-* github - profile picture - Settings - Developer Settings - Personal access tokens - Tokens (classic)
-
-image::gh-token-1.png[]
-
-
-image::gh-token-2.png[]
-
-Troubleshooting:
-
-* When your gh-user-name contains uppercase letters, change the name to lowercase.
-
-* When it still, does not work, then delete `~/.docker/config.json` and try it again.
-
-
-====
-
-
-
-.Push Container to docker registry
-[source,shell]
-----
-docker push ghcr.io/htl-leonding/backend:latest
+      - name: Build with Maven
+        run: ./build.sh
 ----
 
-.result
-[%collapsible]
-====
-----
-The push refers to repository [ghcr.io/htl-leonding/backend]
-5f70bf18a086: Layer already exists
-2359f2e5d796: Pushed
-08b2bdc5762e: Layer already exists
-6e0f58883206: Layer already exists
-eed4bd617b87: Layer already exists
-65bb8dcc703b: Layer already exists
-63aa4237e067: Layer already exists
-98d1994bf6c1: Layer already exists
-latest: digest: sha256:50c58e0426ad4b4335c791d7f60efcad24cc9c5554d5e7f35f0438186af508ca size: 1992
-----
-====
+
+
+
+== Make the Package Public
 
 .Make package public (click for instructions)
 [%collapsible]
@@ -717,7 +704,7 @@ spec:
 ----
 kubectl create deployment appsrv --image=ghcr.io/htl-leonding/backend:latest --port=8080
 ----
-qcfk84
+
 .result
 ----
 deployment.apps/appsrv created
