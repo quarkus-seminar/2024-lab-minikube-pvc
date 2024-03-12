@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: appsrv
-          image:
+          image: ghcr.io/quarkus-seminar/2024-lab-minikube-pvc/backend:latest
           # remove this when stable. Currently, we do not take care of version numbers
           imagePullPolicy: Always
           # command: ["tail","-f","/dev/null"]
