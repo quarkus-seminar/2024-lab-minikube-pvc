@@ -23,7 +23,7 @@ endif::[]
 https://htl-leonding-college.github.io/quarkus-lecture-notes/how-to-install-required-software.html[Which software is required and how to install?^]
 
 
-link::k8s.zip[k8s.zip]
+* link:k8s.zip[k8s.zip]
 
 == Overview
 
