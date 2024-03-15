@@ -23,6 +23,8 @@ endif::[]
 https://htl-leonding-college.github.io/quarkus-lecture-notes/how-to-install-required-software.html[Which software is required and how to install?^]
 
 
+link::k8s.zip[k8s.zip]
+
 == Overview
 
 image::stateful-app.png[]
@@ -570,6 +572,11 @@ docker push ghcr.io/$GITHUB_REPOSITORY/backend:latest
 
 == Config gh-actions - Pipeline
 
+.: .github/workflows/build.yaml
+image::build-yaml.png[]
+
+
+.build.yaml
 [source,yaml]
 ----
 name: Build and Deploy Dockerfiles
@@ -608,7 +615,10 @@ jobs:
         run: ./build.sh
 ----
 
+* Make a commit and push it to the repository
 
+
+image::gh-action-build.png[]
 
 
 == Make the Package Public
@@ -628,11 +638,7 @@ image::gh-packages-4.png[]
 
 == Configure kubernetes Deployment
 
-.check, if you are still in project root, then:
-----
-mkdir k8s
-touch k8s/appsrv.yaml
-----
+.check, if you are still in project root, then create a `appsrv.yaml` in the folder `k8s`
 
 .k8s/appsrv.yaml
 [source,yaml]
@@ -655,7 +661,7 @@ spec:
     spec:
       containers:
         - name: appsrv
-          image: ghcr.io/htl-leonding/backend:latest # <.>
+          image: ghcr.io/quarkus-seminar/2024-lab-minikube-pvc/backend:latest # <.>
           # remove this when stable. Currently we do not take care of version numbers
           imagePullPolicy: Always
           ports:
@@ -783,47 +789,17 @@ image::dashboard-02.png[]
 
 image::dashboard-03.png[]
 
+image::k8s-exec-format-error.png[]
+
+* This error occurs when running minikube on a arm-processor and the image is build for x86-processor (amd).
+
+* We will fix this later on
+
 image::dashboard-04.png[]
 
 
-* We have problems with the jdk-version, because ...
-
-** The pom uses jdk-21
-+
-image::pom-jdk21.png[]
-
-** The Docker image uses jdk-17
-+
-image::dockerfile.png[]
-
-* We decide to use jdk-17 and fix the `pom.xml`.
-
-== Re-Deploy to minikube
-
-.build and push the image
-[%collapsible]
-====
-----
-./mvnw clean package
-cp src/main/docker/Dockerfile target
-docker build --tag ghcr.io/htl-leonding/backend:latest ./target
-docker push ghcr.io/htl-leonding/backend:latest
-----
-====
-
-.Redeploy the app
-----
-kubectl rollout restart deployment appsrv
-----
-
-* Now you see the new pod is already running and the old (broken) pod is still alive.
-
-image::dashboard-05.png[]
 
 
-* The broken pods are now history
-
-image::dashboard-06.png[]
 
 
 == Port Forward from minikube
@@ -840,7 +816,7 @@ TIP: Use kubectl-autocomplete for the appsrv
 [%collapsible]
 ====
 ----
-❯ kubectl port-forward appsrv-7964857d64-2bhcp 8080:8080
+❯ kubectl port-forward appsrv-65cd45564f-8vlrm 8080:8080
 Forwarding from 127.0.0.1:8080 -> 8080
 Forwarding from [::1]:8080 -> 8080
 ----
@@ -849,17 +825,39 @@ Forwarding from [::1]:8080 -> 8080
 == Access the App
 
 ----
-curl -i http://localhost:8080/hello
+curl -i http://localhost:8080/api/vehicle
 ----
 
 
 .result
 ----
-HTTP/1.1 200 OK
-content-length: 28
-Content-Type: text/plain;charset=UTF-8
+GET http://localhost:8080/api/vehicle
 
-Hello from RESTEasy Reactive%
+HTTP/1.1 200 OK
+Content-Type: application/json;charset=UTF-8
+content-length: 126
+
+[
+  {
+    "id": 1,
+    "brand": "Opel",
+    "model": "Kadett"
+  },
+  {
+    "id": 2,
+    "brand": "VW",
+    "model": "Käfer 1400"
+  },
+  {
+    "id": 3,
+    "brand": "Opel",
+    "model": "Blitz"
+  }
+]
+Response file saved.
+> 2024-03-13T062310.200.json
+
+Response code: 200 (OK); Time: 872ms (872 ms); Content length: 125 bytes (125 B)
 ----
 
 

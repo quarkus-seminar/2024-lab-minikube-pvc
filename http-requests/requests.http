@@ -1,6 +1,6 @@
 ### hello
 
-GET http://localhost:8080/api/vehicle
+GET http://localhost:8080/hello
 Content-Type: */*
 
 ### Liveness
@@ -10,5 +10,12 @@ GET http://localhost:8080/q/health/live
 ### Readiness
 
 GET http://localhost:8080/q/health/ready
+
+###
+
+### vehicle
+
+GET http://localhost:8080/api/vehicle
+Content-Type: */*
 
 ###
