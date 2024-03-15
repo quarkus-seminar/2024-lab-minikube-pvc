@@ -556,7 +556,7 @@ pre.rouge .gs {
 <div class="details">
 <span id="author" class="author">Thomas W. Stütz</span><br>
 <span id="revnumber">version 1.0.0,</span>
-<span id="revdate">2024-03-13</span>
+<span id="revdate">2024-03-15</span>
 <br><span id="revremark">build a simple rest endpoint and deploy app to minikube/cloud</span>
 </div>
 <div id="toc" class="toc2">
@@ -589,10 +589,9 @@ pre.rouge .gs {
 <li><a href="#_fix_problems">16.2. Fix problems</a></li>
 </ul>
 </li>
-<li><a href="#_re_deploy_to_minikube">17. Re-Deploy to minikube</a></li>
-<li><a href="#_port_forward_from_minikube">18. Port Forward from minikube</a></li>
-<li><a href="#_access_the_app">19. Access the App</a></li>
-<li><a href="#_troubleshooting">20. Troubleshooting</a></li>
+<li><a href="#_port_forward_from_minikube">17. Port Forward from minikube</a></li>
+<li><a href="#_access_the_app">18. Access the App</a></li>
+<li><a href="#_troubleshooting">19. Troubleshooting</a></li>
 </ul>
 </div>
 </div>
@@ -602,6 +601,9 @@ pre.rouge .gs {
 <h2 id="_voraussetzungen" class="discrete">Voraussetzungen</h2>
 <div class="paragraph">
 <p><a href="https://htl-leonding-college.github.io/quarkus-lecture-notes/how-to-install-required-software.html" target="_blank" rel="noopener">Which software is required and how to install?</a></p>
+</div>
+<div class="paragraph">
+<p>link::k8s.zip[k8s.zip]</p>
 </div>
 </div>
 </div>
@@ -1300,7 +1302,14 @@ docker push ghcr.io/<span class="nv">$GITHUB_REPOSITORY</span>/backend:latest</c
 <div class="sect1">
 <h2 id="_config_gh_actions_pipeline"><a class="anchor" href="#_config_gh_actions_pipeline"></a>13. Config gh-actions - Pipeline</h2>
 <div class="sectionbody">
+<div class="imageblock">
+<div class="content">
+<img src="images/build-yaml.png" alt="build yaml">
+</div>
+<div class="title">Figure 1. : .github/workflows/build.yaml</div>
+</div>
 <div class="listingblock">
+<div class="title">build.yaml</div>
 <div class="content">
 <pre class="rouge highlight"><code data-lang="yaml"><span class="na">name</span><span class="pi">:</span> <span class="s">Build and Deploy Dockerfiles</span>
 <span class="na">run-name</span><span class="pi">:</span> <span class="s">${{ github.actor }} is building Docker images 🚀</span>
@@ -1336,6 +1345,18 @@ docker push ghcr.io/<span class="nv">$GITHUB_REPOSITORY</span>/backend:latest</c
 
       <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Build with Maven</span>
         <span class="na">run</span><span class="pi">:</span> <span class="s">./build.sh</span></code></pre>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Make a commit and push it to the repository</p>
+</li>
+</ul>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="images/gh-action-build.png" alt="gh action build">
 </div>
 </div>
 </div>
@@ -1374,13 +1395,6 @@ docker push ghcr.io/<span class="nv">$GITHUB_REPOSITORY</span>/backend:latest</c
 <h2 id="_configure_kubernetes_deployment"><a class="anchor" href="#_configure_kubernetes_deployment"></a>15. Configure kubernetes Deployment</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">check, if you are still in project root, then:</div>
-<div class="content">
-<pre>mkdir k8s
-touch k8s/appsrv.yaml</pre>
-</div>
-</div>
-<div class="listingblock">
 <div class="title">k8s/appsrv.yaml</div>
 <div class="content">
 <pre class="rouge highlight"><code data-lang="yaml"><span class="c1"># Quarkus Application Server</span>
@@ -1401,7 +1415,7 @@ touch k8s/appsrv.yaml</pre>
     <span class="na">spec</span><span class="pi">:</span>
       <span class="na">containers</span><span class="pi">:</span>
         <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">appsrv</span>
-          <span class="na">image</span><span class="pi">:</span> <span class="s">ghcr.io/htl-leonding/backend:latest</span> <i class="conum" data-value="1"></i><b>(1)</b>
+          <span class="na">image</span><span class="pi">:</span> <span class="s">ghcr.io/quarkus-seminar/2024-lab-minikube-pvc/backend:latest</span> <i class="conum" data-value="1"></i><b>(1)</b>
           <span class="c1"># remove this when stable. Currently we do not take care of version numbers</span>
           <span class="na">imagePullPolicy</span><span class="pi">:</span> <span class="s">Always</span>
           <span class="na">ports</span><span class="pi">:</span>
@@ -1565,92 +1579,29 @@ service/appsrv created</pre>
 </div>
 <div class="imageblock">
 <div class="content">
+<img src="images/k8s-exec-format-error.png" alt="k8s exec format error">
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>This error occurs when running minikube on a arm-processor and the image is build for x86-processor (amd).</p>
+</li>
+<li>
+<p>We will fix this later on</p>
+</li>
+</ul>
+</div>
+<div class="imageblock">
+<div class="content">
 <img src="images/dashboard-04.png" alt="dashboard 04">
 </div>
 </div>
-<div class="ulist">
-<ul>
-<li>
-<p>We have problems with the jdk-version, because &#8230;&#8203;</p>
-<div class="ulist">
-<ul>
-<li>
-<p>The pom uses jdk-21</p>
-<div class="imageblock">
-<div class="content">
-<img src="images/pom-jdk21.png" alt="pom jdk21">
-</div>
-</div>
-</li>
-<li>
-<p>The Docker image uses jdk-17</p>
-<div class="imageblock">
-<div class="content">
-<img src="images/dockerfile.png" alt="dockerfile">
-</div>
-</div>
-</li>
-</ul>
-</div>
-</li>
-<li>
-<p>We decide to use jdk-17 and fix the <code>pom.xml</code>.</p>
-</li>
-</ul>
-</div>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_re_deploy_to_minikube"><a class="anchor" href="#_re_deploy_to_minikube"></a>17. Re-Deploy to minikube</h2>
-<div class="sectionbody">
-<details>
-<summary class="title">build and push the image</summary>
-<div class="content">
-<div class="listingblock">
-<div class="content">
-<pre>./mvnw clean package
-cp src/main/docker/Dockerfile target
-docker build --tag ghcr.io/htl-leonding/backend:latest ./target
-docker push ghcr.io/htl-leonding/backend:latest</pre>
-</div>
-</div>
-</div>
-</details>
-<div class="listingblock">
-<div class="title">Redeploy the app</div>
-<div class="content">
-<pre>kubectl rollout restart deployment appsrv</pre>
-</div>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>Now you see the new pod is already running and the old (broken) pod is still alive.</p>
-</li>
-</ul>
-</div>
-<div class="imageblock">
-<div class="content">
-<img src="images/dashboard-05.png" alt="dashboard 05">
-</div>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>The broken pods are now history</p>
-</li>
-</ul>
-</div>
-<div class="imageblock">
-<div class="content">
-<img src="images/dashboard-06.png" alt="dashboard 06">
-</div>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_port_forward_from_minikube"><a class="anchor" href="#_port_forward_from_minikube"></a>18. Port Forward from minikube</h2>
+<h2 id="_port_forward_from_minikube"><a class="anchor" href="#_port_forward_from_minikube"></a>17. Port Forward from minikube</h2>
 <div class="sectionbody">
 <div class="listingblock">
 <div class="title">Port forwarding</div>
@@ -1675,7 +1626,7 @@ Use kubectl-autocomplete for the appsrv
 <div class="content">
 <div class="listingblock">
 <div class="content">
-<pre>❯ kubectl port-forward appsrv-7964857d64-2bhcp 8080:8080
+<pre>❯ kubectl port-forward appsrv-65cd45564f-8vlrm 8080:8080
 Forwarding from 127.0.0.1:8080 -&gt; 8080
 Forwarding from [::1]:8080 -&gt; 8080</pre>
 </div>
@@ -1685,27 +1636,49 @@ Forwarding from [::1]:8080 -&gt; 8080</pre>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_access_the_app"><a class="anchor" href="#_access_the_app"></a>19. Access the App</h2>
+<h2 id="_access_the_app"><a class="anchor" href="#_access_the_app"></a>18. Access the App</h2>
 <div class="sectionbody">
 <div class="listingblock">
 <div class="content">
-<pre>curl -i http://localhost:8080/hello</pre>
+<pre>curl -i http://localhost:8080/api/vehicle</pre>
 </div>
 </div>
 <div class="listingblock">
 <div class="title">result</div>
 <div class="content">
-<pre>HTTP/1.1 200 OK
-content-length: 28
-Content-Type: text/plain;charset=UTF-8
+<pre>GET http://localhost:8080/api/vehicle
 
-Hello from RESTEasy Reactive%</pre>
+HTTP/1.1 200 OK
+Content-Type: application/json;charset=UTF-8
+content-length: 126
+
+[
+  {
+    "id": 1,
+    "brand": "Opel",
+    "model": "Kadett"
+  },
+  {
+    "id": 2,
+    "brand": "VW",
+    "model": "Käfer 1400"
+  },
+  {
+    "id": 3,
+    "brand": "Opel",
+    "model": "Blitz"
+  }
+]
+Response file saved.
+&gt; 2024-03-13T062310.200.json
+
+Response code: 200 (OK); Time: 872ms (872 ms); Content length: 125 bytes (125 B)</pre>
 </div>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_troubleshooting"><a class="anchor" href="#_troubleshooting"></a>20. Troubleshooting</h2>
+<h2 id="_troubleshooting"><a class="anchor" href="#_troubleshooting"></a>19. Troubleshooting</h2>
 <div class="sectionbody">
 <div class="listingblock">
 <div class="title">open an ssh-shell in minikube</div>
@@ -1728,7 +1701,7 @@ Hello from RESTEasy Reactive%</pre>
 <div id="footer">
 <div id="footer-text">
 Version 1.0.0<br>
-Last updated 2024-03-13 01:47:33 UTC
+Last updated 2024-03-15 08:33:01 UTC
 </div>
 </div>
 </body>
