@@ -21,22 +21,17 @@ jobs:
 #          ls -lah
 #        working-directory: ./k8s
 
-      - uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '21'
-          cache: 'maven'
+#      - uses: actions/setup-java@v4
+#        with:
+#          distribution: 'temurin'
+#          java-version: '21'
+#          cache: 'maven'
 
       - name: Build with Maven
         run: |
           mvn -B package
           echo "GITHUB_REPOSITORY ${{ github.repository }}"
           cp -v target/*-runner.jar src/main/docker/
-
-      - run: |
-          pwd
-          ls -lah
-        working-directory: ./src/main/docker
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -45,7 +40,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: ./src/main/docker/Dockerfile
+          file: src/main/docker/Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true
           tags: ghcr.io/${{ github.repository }}:latest
