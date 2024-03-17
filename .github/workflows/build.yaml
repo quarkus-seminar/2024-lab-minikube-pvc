@@ -27,12 +27,6 @@ jobs:
 #          java-version: '21'
 #          cache: 'maven'
 
-      - name: Build with Maven
-        run: |
-          mvn -B package
-          echo "GITHUB_REPOSITORY ${{ github.repository }}"
-          cp -v target/*-runner.jar src/main/docker/
-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
