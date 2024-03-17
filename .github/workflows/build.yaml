@@ -31,7 +31,7 @@ jobs:
         run: |
           mvn -B package
           echo "GITHUB_REPOSITORY ${{ github.repository }}"
-          cp -v target/*-runner.jar src/main/docker/backend.jar
+          cp -v target/*-runner.jar src/main/docker/
 
       - run: |
           pwd
