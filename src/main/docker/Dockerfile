@@ -2,8 +2,9 @@ FROM eclipse-temurin:21-jre
 
 RUN mkdir -p /opt/application
 COPY *-runner.jar /opt/application/backend.jar
-RUN echo ls -lah
 WORKDIR /opt/application
+RUN pwd
+RUN ls -lah
 CMD [ "java", "-jar", "backend.jar" ]
 
 #FROM maven:3-eclipse-temurin-21 AS builder
